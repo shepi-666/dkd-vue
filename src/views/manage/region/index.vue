@@ -61,6 +61,7 @@
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="序号" type="index" align="center" prop="id" width="50"/>
       <el-table-column label="区域名称" align="center" prop="name" />
+      <el-table-column label="节点数量" align="center" prop="nodeCount" />
       <el-table-column label="备注" align="center" prop="remark" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
