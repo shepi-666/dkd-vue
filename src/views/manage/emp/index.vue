@@ -9,7 +9,7 @@
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="所属区域Id" prop="regionId">
+      <el-form-item label="所属区域Id" prop="regionId" label-width="120px">
         <el-input
           v-model="queryParams.regionId"
           placeholder="请输入所属区域Id"
@@ -17,32 +17,7 @@
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="角色id" prop="roleId">
-        <el-input
-          v-model="queryParams.roleId"
-          placeholder="请输入角色id"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="角色编号" prop="roleCode">
-        <el-input
-          v-model="queryParams.roleCode"
-          placeholder="请输入角色编号"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="是否启用" prop="status">
-        <el-select v-model="queryParams.status" placeholder="请选择是否启用" clearable>
-          <el-option
-            v-for="dict in emp_status"
-            :key="dict.value"
-            :label="dict.label"
-            :value="dict.value"
-          />
-        </el-select>
-      </el-form-item>
+     
       <el-form-item>
         <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
         <el-button icon="Refresh" @click="resetQuery">重置</el-button>
@@ -93,15 +68,15 @@
 
     <el-table v-loading="loading" :data="empList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="主键" align="center" prop="id" />
+      <el-table-column label="序号" type="index" align="center" prop="id" width="50px"/>
       <el-table-column label="员工名称" align="center" prop="userName" />
       <el-table-column label="区域名称" align="center" prop="regionName" />
       <el-table-column label="角色名称" align="center" prop="roleName" />
       <el-table-column label="联系电话" align="center" prop="mobile" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
-          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['manage:emp:edit']">修改</el-button>
-          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['manage:emp:remove']">删除</el-button>
+          <el-button link type="primary" @click="handleUpdate(scope.row)" v-hasPermi="['manage:emp:edit']">修改</el-button>
+          <el-button link type="primary" @click="handleDelete(scope.row)" v-hasPermi="['manage:emp:remove']">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -114,17 +89,34 @@
       @pagination="getList"
     />
 
-    <!-- 添加或修改人员李彪对话框 -->
+    <!-- 添加或修改人员对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="empRef" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="员工名称" prop="userName">
           <el-input v-model="form.userName" placeholder="请输入员工名称" />
         </el-form-item>
-        <el-form-item label="所属区域Id" prop="regionId">
-          <el-input v-model="form.regionId" placeholder="请输入所属区域Id" />
+        <el-form-item label="员工角色" prop="roleId">
+          <el-select v-model="form.roleId"  placeholder="请选择角色">
+          <el-option
+            v-for="dict in roleList"
+            :key="dict.roleId"
+            :label="dict.roleName"
+            :value="parseInt(dict.roleId)"
+          ></el-option>
+        </el-select>
         </el-form-item>
-        <el-form-item label="角色id" prop="roleId">
-          <el-input v-model="form.roleId" placeholder="请输入角色id" />
+        <el-form-item label="所属区域" prop="regionId">
+          <el-select v-model="form.regionId"  placeholder="请选择区域">
+          <el-option
+            v-for="dict in regionList"
+            :key="dict.id"
+            :label="dict.name"
+            :value="parseInt(dict.id)"
+          ></el-option>
+        </el-select>
+        </el-form-item>
+        <el-form-item label="创建时间" prop="createTime" v-if="form.id != null">
+          {{ form.createTime }}
         </el-form-item>
         <el-form-item label="联系电话" prop="mobile">
           <el-input v-model="form.mobile" placeholder="请输入联系电话" />
@@ -155,6 +147,9 @@
 
 <script setup name="Emp">
 import { listEmp, getEmp, delEmp, addEmp, updateEmp } from "@/api/manage/emp";
+import { listRole} from "@/api/manage/role";
+import { loadAllParams} from "@/api/page";
+import { listRegion } from "@/api/manage/region";
 
 const { proxy } = getCurrentInstance();
 const { emp_status } = proxy.useDict('emp_status');
@@ -204,7 +199,7 @@ const data = reactive({
 
 const { queryParams, form, rules } = toRefs(data);
 
-/** 查询人员李彪列表 */
+/** 查询人员列表列表 */
 function getList() {
   loading.value = true;
   listEmp(queryParams.value).then(response => {
@@ -262,7 +257,7 @@ function handleSelectionChange(selection) {
 function handleAdd() {
   reset();
   open.value = true;
-  title.value = "添加人员李彪";
+  title.value = "添加人员列表";
 }
 
 /** 修改按钮操作 */
@@ -272,7 +267,7 @@ function handleUpdate(row) {
   getEmp(_id).then(response => {
     form.value = response.data;
     open.value = true;
-    title.value = "修改人员李彪";
+    title.value = "修改人员列表";
   });
 }
 
@@ -300,7 +295,7 @@ function submitForm() {
 /** 删除按钮操作 */
 function handleDelete(row) {
   const _ids = row.id || ids.value;
-  proxy.$modal.confirm('是否确认删除人员李彪编号为"' + _ids + '"的数据项？').then(function() {
+  proxy.$modal.confirm('是否确认删除人员列表编号为"' + _ids + '"的数据项？').then(function() {
     return delEmp(_ids);
   }).then(() => {
     getList();
@@ -314,6 +309,22 @@ function handleExport() {
     ...queryParams.value
   }, `emp_${new Date().getTime()}.xlsx`)
 }
+/** 查询角色列表 */
+const roleList = ref([]);
+function getRoleList() {
+  listRole(loadAllParams).then(response => {
+    roleList.value = response.rows;
+  });
+}
+/** 查询区域列表 */
+const regionList = ref([]);
+function getRegionList() {
+  listRegion(loadAllParams).then(response => {
+    regionList.value = response.rows;
+  });
+}
 
+getRegionList();
+getRoleList();
 getList();
 </script>
