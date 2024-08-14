@@ -65,6 +65,7 @@
       <el-table-column label="备注" align="center" prop="remark" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
+          <el-button link type="primary"  @click="getRegionInfo(scope.row)" v-hasPermi="['manage:node:list']">查看详情</el-button>
           <el-button link type="primary"  @click="handleUpdate(scope.row)" v-hasPermi="['manage:region:edit']">修改</el-button>
           <el-button link type="primary"  @click="handleDelete(scope.row)" v-hasPermi="['manage:region:remove']">删除</el-button>
         </template>
@@ -96,12 +97,28 @@
         </div>
       </template>
     </el-dialog>
+
+    <!-- 查看详情对话框 -->
+    <el-dialog title="查看详情" v-model="openInfo" width="500px" append-to-body>
+      <el-form-item label="区域名称" prop="name">
+          <el-input v-model="form.name" placeholder="请输入区域名称" disabled />
+      </el-form-item>
+      <label>包含点位：</label>
+      <el-table :data="nodeList" style="width: 100%">
+        <el-table-column label="序号" align="center"  type="index" prop="id" width="50" />
+        <el-table-column label="点位名称" align="center" prop="name" />
+        <el-table-column label="设备数量" align="center" prop="vmCount" />
+      </el-table>
+
+    </el-dialog>
+
   </div>
 </template>
 
 <script setup name="Region">
 import { listRegion, getRegion, delRegion, addRegion, updateRegion } from "@/api/manage/region";
-
+import { listNode} from "@/api/manage/node";
+import { loadAllParams } from "@/api/page";
 const { proxy } = getCurrentInstance();
 
 const regionList = ref([]);
@@ -198,6 +215,25 @@ function handleUpdate(row) {
     open.value = true;
     title.value = "修改区域管理";
   });
+}
+
+/** 查询区域详情 */
+const nodeList = ref([]);
+const openInfo = ref(false);
+function getRegionInfo(row) {
+  // 查询区域信息
+  reset();
+  const _id = row.id || ids.value
+  getRegion(_id).then(response => {
+    form.value = response.data;
+  });
+  // 查询点位列表
+  loadAllParams.regionId = row.id;
+  listNode(loadAllParams).then(response => {
+    nodeList.value = response.rows;
+  });
+  openInfo.value = true;
+
 }
 
 /** 提交按钮 */
