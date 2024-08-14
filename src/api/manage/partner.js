@@ -42,3 +42,13 @@ export function delPartner(id) {
     method: 'delete'
   })
 }
+
+
+// 重置合作商管理
+export function resetPwd(data) {
+  return request({
+    url: '/manage/partner/reset',
+    method: 'put',
+    data: data
+  })
+}
