@@ -81,6 +81,7 @@
       <el-table-column label="详细地址" align="left" prop="address" show-overflow-tooltip/>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
+          <el-button link type="primary" @click="getNodeInfo(scope.row)" v-hasPermi="['manage:node:query']">查看详情</el-button>
           <el-button link type="primary" @click="handleUpdate(scope.row)" v-hasPermi="['manage:node:edit']">修改</el-button>
           <el-button link type="primary" @click="handleDelete(scope.row)" v-hasPermi="['manage:node:remove']">删除</el-button>
         </template>
@@ -143,6 +144,33 @@
         </div>
       </template>
     </el-dialog>
+
+    <!-- 查看点位详情对话框 -->
+     <el-dialog title="点位详情" v-model="nodeOpen" width="800px" append-to-body>
+      <el-table v-loading="loading" :data="vmList" @selection-change="handleSelectionChange">
+        <el-table-column label="序号" type="index" width="60" align="center" />
+        <el-table-column label="设备编号" align="center" prop="innerCode" />
+        <el-table-column label="详细地址" align="left" prop="addr" show-overflow-tooltip="true" />
+
+        <el-table-column label="设备状态" align="center" prop="vmStatus">
+          <template #default="scope">
+            <span v-if="scope.row.runningStatus != null">
+              {{ JSON.parse(scope.row.runningStatus).status == true ? '运行中' : '异常' }}
+            </span>
+            <span v-else>
+              {{ '未知' }}
+            </span>
+          </template>
+          
+        </el-table-column>
+
+        <el-table-column label="最后供货时间" align="center">
+          <template #default="scope">
+            {{ parseTime(scope.row.lastSupplyTime, "{y}-{m}-{d} {h}:{i}:{s}") }}
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-dialog>
   </div>
 </template>
 
@@ -152,6 +180,8 @@ import { listRegion, getRegion } from "@/api/manage/region";
 import { reactive, ref } from "vue";
 import { listPartner } from "../../../api/manage/partner";
 import { loadAllParams } from "../../../api/page";
+import { listVm } from "@/api/manage/vm";
+
 
 const { proxy } = getCurrentInstance();
 const { bussiness_type } = proxy.useDict('bussiness_type');
@@ -266,6 +296,17 @@ function handleUpdate(row) {
     open.value = true;
     title.value = "修改点位管理";
   });
+}
+// 查看详情
+const vmList = ref([]);
+const nodeOpen = ref(false);
+function getNodeInfo(row) {
+   // 根据点位，查询设备列表
+   nodeOpen.value = true;
+   loadAllParams.nodeId = row.id;
+   listVm(loadAllParams).then(response => {
+     vmList.value = response.rows;
+   });
 }
 
 /** 提交按钮 */
