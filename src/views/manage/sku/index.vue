@@ -54,6 +54,16 @@
           v-hasPermi="['manage:sku:export']"
         >导出</el-button>
       </el-col>
+
+      <el-col :span="1.5">
+        <el-button
+          type="warning"
+          plain
+          icon="Upload"
+          @click="handleImport"
+          v-hasPermi="['manage:sku:add']"
+        >导入</el-button>
+      </el-col>
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
@@ -140,6 +150,28 @@
         </div>
       </template>
     </el-dialog>
+
+    <!-- 数据导入对话框 -->
+    <el-dialog title="数据导入" v-model="excelOpen" width="400px" append-to-body>
+      <el-upload
+        class="upload-demo"
+        ref="uploadRef"
+        :action="uploadExcelUrl"
+        :headers="headers"
+        :on-preview="handlePreview"
+        :on-remove="handleRemove"
+        :file-list="fileList"
+        :on-success="handleSuccess"
+        :on-error="handleError"
+        :limit="1"
+        :auto-upload="false">
+        <el-button slot="trigger" size="small" type="primary">选取文件</el-button>
+        
+        
+      </el-upload>
+      <div slot="tip" class="el-upload__tip">只能上传xls/xlsx文件，且不超过500kb</div>
+      <el-button style="margin-left: 80px" type="success" @click="submitUpload">上传到服务器</el-button>
+    </el-dialog>
   </div>
 </template>
 
@@ -147,6 +179,8 @@
 import { listSku, getSku, delSku, addSku, updateSku } from "@/api/manage/sku";
 import { listSkyType } from "@/api/manage/skyType";
 import { loadAllParams } from '@/api/page';
+import { ref } from "vue";
+import { getToken } from "@/utils/auth";
 
 const { proxy } = getCurrentInstance();
 
@@ -313,6 +347,40 @@ function getskyTypeList() {
   });
 }
 
+/** 打开数据导入的对话框 */
+const excelOpen = ref(false);
+function handleImport() {
+  excelOpen.value = true;
+
+}
+
+/** 上传excel文件 */
+const uploadRef = ref({});
+function submitUpload() {
+  uploadRef.value.submit();
+}
+
+// 上传Excel文件地址
+const uploadExcelUrl = ref(import.meta.env.VITE_APP_BASE_API + "/manage/sku/import");
+const headers = ref({
+  "Authorization": "Bearer " + getToken()
+});
+
+function handleSuccess(res, file) {
+  if (res.code === 200) {
+    proxy.$modal.msgSuccess("上传文件成功");
+    excelOpen.value = false;
+    getList();
+  } else {
+    proxy.$modal.msgError(res.msg);
+  }
+  uploadRef.value.clearFiles();
+}
+
+function handleError() {
+  proxy.$modal.msgError("上传失败");
+  uploadRef.value.clearFiles();
+}
 
 getskyTypeList();
 getList();
