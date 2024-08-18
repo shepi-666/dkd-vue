@@ -92,7 +92,7 @@
                   placeholder="请输入"
                   clearable
                   class="sku-name"
-                  @input="resetPageIndex"
+                  @input="resetpageNum"
                 />
               </el-col>
               <el-col>
@@ -149,7 +149,7 @@
         <el-icon
           v-if="pageCount > 1"
           class="arrow arrow-right"
-          :class="listQuery.pageIndex === pageCount ? 'disabled' : ''"
+          :class="listQuery.pageNum === pageCount ? 'disabled' : ''"
           @click="handleClickNext"
           ><ArrowRight
         /></el-icon>
@@ -260,7 +260,7 @@ const openRemoveSkuDialog = (index, code) => {
 };
 // 添加商品
 const listQuery = ref({
-  pageIndex: 1,
+  pageNum: 1,
   pageSize: 10,
 }); //搜索商品
 const listSkuLoading = ref(false); //商品列表loading
@@ -289,23 +289,23 @@ const handleListClose = () => {
 };
 // 商品上一页
 const handleClickPrev = () => {
-  if (listQuery.value.pageIndex === 1) {
+  if (listQuery.value.pageNum === 1) {
     return;
   }
-  listQuery.value.pageIndex--;
+  listQuery.value.pageNum--;
   handleListOpen();
 };
 // 商品下一页
 const handleClickNext = () => {
-  if (listQuery.value.pageIndex === pageCount.value) {
+  if (listQuery.value.pageNum === pageCount.value) {
     return;
   }
-  listQuery.value.pageIndex++;
+  listQuery.value.pageNum++;
   handleListOpen();
 };
 // 搜索
-const resetPageIndex = () => {
-  listQuery.value.pageIndex = 1;
+const resetpageNum = () => {
+  listQuery.value.pageNum = 1;
   handleListOpen();
 };
 // 商品选择
